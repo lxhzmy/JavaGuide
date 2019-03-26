@@ -177,6 +177,25 @@ ZAB协议包括两种基本的模式，分别是 **崩溃恢复和消息广播**
 
 通过阅读本文，想必大家已从 **①ZooKeeper的由来。** -> **②ZooKeeper 到底是什么 。**-> **③ ZooKeeper 的一些重要概念**（会话（Session）、 Znode、版本、Watcher、ACL）-> **④ZooKeeper 的特点。** -> **⑤ZooKeeper 的设计目标。**-> **⑥ ZooKeeper 集群角色介绍** （Leader、Follower 和 Observer 三种角色）-> **⑦ZooKeeper &ZAB 协议&Paxos算法。** 这七点了解了 ZooKeeper 。
 
+## 补充
+### 用CAP理论来分析ZooKeeper
+
+CAP理论告诉我们，一个分布式系统不可能同时满足以下三种：
+1. 一致性（C:Consistency）
+2. 可用性（A:Available）
+3. 分区容错性（P:Partition Tolerance）
+<br>
+这三个基本需求，最多只能同时满足其中的两项，因为P是必须的,因此往往选择就在CP或者AP中。
+在此ZooKeeper保证的是CP
+
+分析：可用性（A:Available）
+不能保证每次服务请求的可用性。任何时刻对ZooKeeper的访问请求能得到一致的数据结果，同时系统对网络分割具备容错性；但是它不能保证每次服务请求的可用性（注：也就是在极端环境下，ZooKeeper可能会丢弃一些请求，消费者程序需要重新请求才能获得结果）。所以说，ZooKeeper不能保证服务可用性。
+<br>
+进行leader选举时集群都是不可用。在使用ZooKeeper获取服务列表时，当master节点因为网络故障与其他节点失去联系时，剩余节点会重新进行leader选举。问题在于，选举leader的时间太长，30 ~ 120s, 且选举期间整个zk集群都是不可用的，这就导致在选举期间注册服务瘫痪，虽然服务能够最终恢复，但是漫长的选举时间导致的注册长期不可用是不能容忍的。所以说，ZooKeeper不能保证服务可用性。
+
+作者：搜云库技术团队
+链接：https://juejin.im/post/5afe4f285188251b8015e4b6
+
 ## 参考
 
 - 《从Paxos到Zookeeper 》
